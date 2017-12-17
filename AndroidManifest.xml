@@ -3,6 +3,12 @@
     package="com.longbo.mobilesafe"
     android:versionCode="1"
     android:versionName="1.0" >
+    <!-- android:versionCode 更新后，需提醒用户更新应用 -->
+    <!-- versionName
+    	2.1.1 最后一位，修复bug
+    	倒数第二位，更新部分功能
+    	第一位，项目重大更新
+     -->
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -10,6 +16,7 @@
 
     <!-- android:theme="@android:style/Theme.Light.NoTitleBar" >去掉标题 -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -24,6 +31,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+    <activity android:name="com.longbo.mobilesafe.activity.HomeActivity"></activity>
+
     </application>
 
 </manifest>

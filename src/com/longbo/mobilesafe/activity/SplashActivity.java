@@ -1,26 +1,112 @@
 package com.longbo.mobilesafe.activity;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.longbo.mobilesafe.R;
-import com.longbo.mobilesafe.utils.StreamUtil;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.longbo.mobilesafe.utils.StreamUtil;
+import com.longbo.mobilesafe.utils.ToastUtil;
+
+import com.longbo.mobilesafe.R;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.widget.TextView;
 
 public class SplashActivity extends Activity {
 
 	protected static final String tag = "SplashActivity";
+	
+	
+	/**
+	 * 更新新版本的状态
+	 */
+	protected static final int UPDATE_VERSION = 100;
+
+
+	/**
+	 * 进入应用程序主界面的状态
+	 */
+	protected static final int ENTER_HOME = 101;
+
+
+	/**
+	 * URL地址出错状态
+	 */
+	protected static final int URL_ERROE = 102;
+
+
+	/**
+	 * IO出错状态
+	 */
+	protected static final int IO_ERROE = 103;
+
+
+	/**
+	 * json解析出错状态
+	 */
+	protected static final int JSON_ERROR = 104;
+
+
 	private TextView tv_version_name;
 	private int mLocalVersionCode;
+	protected String mVersionDes;
+	protected String mDownloadUrl;
+	
+	
+	private Handler mHandler = new Handler(){
+		@Override
+		public void handleMessage(Message msg) {
+			switch(msg.what){
+			case UPDATE_VERSION:
+				showUpdateDialog();
+				break;
+			case ENTER_HOME:
+				//进入应用程序主界面
+				enterHome();
+				break;
+			case URL_ERROE:
+//				Toast.makeText(context, text, duration).show();
+				ToastUtil.show(getApplicationContext(), "url异常");
+				enterHome();
+				break;	
+			case IO_ERROE:
+//				Toast.makeText(context, text, duration).show();
+				ToastUtil.show(getApplicationContext(), "读取IO异常");
+				enterHome();
+				break;
+			case JSON_ERROR:
+				ToastUtil.show(getApplicationContext(), "json解析异常");
+				enterHome();
+				break;
+			}
+		}
+	};
+
+
+	
+
+
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +116,95 @@ public class SplashActivity extends Activity {
 		setContentView(R.layout.activity_splash);
 		initUI();
 		initData();
+	}
+
+	/**
+	 * 弹出对话框，提示用户更新
+	 */
+	protected void showUpdateDialog() {
+		//对话框是依赖于activity存在的
+		Builder builder = new AlertDialog.Builder(this);
+		builder.setIcon(R.drawable.ic_launcher);
+		builder.setTitle("版本更新");
+		//设置描述内容
+		builder.setMessage(mVersionDes);
+		builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				//下载apk，downloadUrl
+				downloadApk();
+			}
+		});
+		
+		builder.setNegativeButton("稍后再说", new DialogInterface.OnClickListener(){
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				enterHome();
+			}
+		});
+	
+		builder.show();
+	}
+
+	protected void downloadApk() {
+		//apk链接地址，放置apk所在路径
+		
+		//1.判断sd卡是否可用，是否挂在上
+		if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+			//2.获取SD路径
+			String path = Environment.getExternalStorageDirectory().getAbsolutePath()
+					+File.separator+"mobilesafe.apk ";
+			//3.发送请求，获取apk，并且放置到指定路径
+			HttpUtils httpUtils = new HttpUtils();
+			
+			//4.发送请求，传递参数（下载地址，下载应用放置位置）
+			httpUtils.download(mDownloadUrl, path, new RequestCallBack<File>() {
+				
+				@Override
+				public void onSuccess(ResponseInfo<File> responseInfo) {
+					// 下载成功
+					Log.i(tag, "下载成功");
+					File file = responseInfo.result;
+				}
+				
+				@Override
+				public void onFailure(HttpException arg0, String arg1) {
+					Log.i(tag, "下载失败");
+					// 下载失败
+					
+				}
+				//刚刚开始下载的方法
+				@Override
+				public void onStart() {
+					Log.i(tag, "刚刚开始下载...");
+					super.onStart();
+				}
+				
+				//下载过程的方法
+				/* (non-Javadoc) 
+				 * @see com.lidroid.xutils.http.callback.RequestCallBack#onLoading(long, long, boolean)
+				 */
+				@Override
+				public void onLoading(long total, long current, boolean isUploading) {
+					Log.i(tag, "下载中...");
+					super.onLoading(total, current, isUploading);
+				}
+			});
+		}
+		
+	}
+
+	/**
+	 * 进入应用程序的主界面
+	 */
+	protected void enterHome() {
+		Intent intent = new Intent(this, HomeActivity.class);
+		startActivity(intent);
+		
+		//在开启一个新的界面后，将导航界面关闭
+		finish();
 	}
 
 	/**
@@ -69,6 +244,10 @@ public class SplashActivity extends Activity {
 			public void run(){
 				//发送请求获取数据，参数则为请求json的链接地址,不灵活
 				//仅限于模拟器访问电脑的tomcat
+				Message msg = Message.obtain();
+				long startTime = System.currentTimeMillis();
+				
+				
 				try {
 					//1.封装url地址
 					URL url = new URL("http://10.0.2.2:8080/updateMobileSafe.json");
@@ -91,14 +270,48 @@ public class SplashActivity extends Activity {
 						//6.将流转换成字符串(工具类封装)
 						String json = StreamUtil.streamToString(is);
 						Log.i(tag, json);
+						
+						//解析json
+						JSONObject jsonObject = new JSONObject(json);
+						String versionName=jsonObject.getString("versionName");
+						mVersionDes=jsonObject.getString("versionDes");
+						String versionCode=jsonObject.getString("versionCode");
+						mDownloadUrl=jsonObject.getString("downloadUrl");
+						
+						//8.比对版本号
+						if(mLocalVersionCode < Integer.parseInt(versionCode)){
+							//提示用户更新，弹出对话框（UI），消息机制
+							msg.what = UPDATE_VERSION;
+						}
+						else{
+							//进入应用程序
+							msg.what = ENTER_HOME;
+						}
 					}
 					
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
+					msg.what = URL_ERROE;
 				} catch (IOException e) {
 					e.printStackTrace();
+					msg.what = IO_ERROE;
+				} catch (JSONException e) {
+					e.printStackTrace();
+					msg.what = JSON_ERROR;
+				}finally {
+					//指定睡眠时间，请求网络的时长超过4秒则不做处理
+					//请求网络时长小于4秒，强制让其睡眠满四秒
+					
+					long endTime = System.currentTimeMillis();
+					if(endTime - startTime < 4000){
+						try {
+							Thread.sleep(4000-(endTime - startTime));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					mHandler.sendMessage(msg);
 				}
-				
 			}
 		}.start();
 		

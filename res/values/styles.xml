@@ -15,6 +15,7 @@
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    	<!-- 去标题的同时，保持高版本 -->
     	<item name="android:windowNoTitle">true</item>
     </style>
 
