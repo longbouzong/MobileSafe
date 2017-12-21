@@ -25,6 +25,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -71,6 +72,7 @@ public class SplashActivity extends Activity {
 	private int mLocalVersionCode;
 	protected String mVersionDes;
 	protected String mDownloadUrl;
+	protected String mVersionName;
 	
 	
 	private Handler mHandler = new Handler(){
@@ -86,7 +88,8 @@ public class SplashActivity extends Activity {
 				break;
 			case URL_ERROE:
 //				Toast.makeText(context, text, duration).show();
-				ToastUtil.show(getApplicationContext(), "url异常");
+//				ToastUtil.show(getApplicationContext(), "url异常");
+				ToastUtil.show(SplashActivity.this, "url异常");
 				enterHome();
 				break;	
 			case IO_ERROE:
@@ -102,12 +105,6 @@ public class SplashActivity extends Activity {
 		}
 	};
 
-
-	
-
-
-	
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -124,10 +121,12 @@ public class SplashActivity extends Activity {
 	protected void showUpdateDialog() {
 		//对话框是依赖于activity存在的
 		Builder builder = new AlertDialog.Builder(this);
+		//设置左上角图标
 		builder.setIcon(R.drawable.ic_launcher);
 		builder.setTitle("版本更新");
 		//设置描述内容
 		builder.setMessage(mVersionDes);
+		//积极按钮，立即更新
 		builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
 			
 			@Override
@@ -142,6 +141,17 @@ public class SplashActivity extends Activity {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				enterHome();
+				
+			}
+		});
+		
+		builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+			
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				enterHome();
+				dialog.dismiss();
+				
 			}
 		});
 	
@@ -167,6 +177,8 @@ public class SplashActivity extends Activity {
 					// 下载成功
 					Log.i(tag, "下载成功");
 					File file = responseInfo.result;
+					//提示用户安装
+					installApk(file);
 				}
 				
 				@Override
@@ -182,19 +194,49 @@ public class SplashActivity extends Activity {
 					super.onStart();
 				}
 				
-				//下载过程的方法
+				//下载过程的方法（下载APK总大小，当前的下载位置，是否正在下载）
 				/* (non-Javadoc) 
 				 * @see com.lidroid.xutils.http.callback.RequestCallBack#onLoading(long, long, boolean)
 				 */
 				@Override
 				public void onLoading(long total, long current, boolean isUploading) {
 					Log.i(tag, "下载中...");
+					Log.i(tag, "total..."+total);
+					Log.i(tag, "current..."+current);
+					Log.i(tag, "isUploading..."+isUploading);
 					super.onLoading(total, current, isUploading);
 				}
 			});
 		}
 		
 	}
+
+	/**安装对应apk
+	 * @param file
+	 */
+	protected void installApk(File file) {
+		//系统应用界面，源码，安装apk入口
+		Intent intent = new Intent("android.intent.action.VIEW");
+		intent.addCategory("android.intent.category.DEFAULT");
+//		intent.setData(Uri.fromFile(file));
+//		//设置安装类型
+//		intent.setType("application/vnd.android.package-archive");
+		
+		intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive");
+//		startActivity(intent);
+		startActivityForResult(intent, 0);
+		
+	}
+	
+	/* (non-Javadoc) 开启一个activity后，返回结果调用的方法
+	 * @see android.app.Activity#onActivityResult(int, int, android.content.Intent)
+	 */
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		enterHome();
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+	
 
 	/**
 	 * 进入应用程序的主界面
@@ -273,7 +315,7 @@ public class SplashActivity extends Activity {
 						
 						//解析json
 						JSONObject jsonObject = new JSONObject(json);
-						String versionName=jsonObject.getString("versionName");
+						mVersionName=jsonObject.getString("versionName");
 						mVersionDes=jsonObject.getString("versionDes");
 						String versionCode=jsonObject.getString("versionCode");
 						mDownloadUrl=jsonObject.getString("downloadUrl");
