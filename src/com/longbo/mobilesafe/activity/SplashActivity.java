@@ -31,6 +31,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.animation.AlphaAnimation;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class SplashActivity extends Activity {
@@ -73,7 +75,7 @@ public class SplashActivity extends Activity {
 	protected String mVersionDes;
 	protected String mDownloadUrl;
 	protected String mVersionName;
-	
+	private RelativeLayout rl_root;
 	
 	private Handler mHandler = new Handler(){
 		@Override
@@ -113,6 +115,15 @@ public class SplashActivity extends Activity {
 		setContentView(R.layout.activity_splash);
 		initUI();
 		initData();
+		
+		//初始化的动画
+		initAnimation();
+	}
+
+	private void initAnimation() {
+		AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
+		alphaAnimation.setDuration(3000);
+		rl_root.startAnimation(alphaAnimation);
 	}
 
 	/**
@@ -391,6 +402,7 @@ public class SplashActivity extends Activity {
 	 */
 	private void initUI() {
 		tv_version_name = (TextView)findViewById(R.id.tv_version_name);
+		rl_root = (RelativeLayout) findViewById(R.id.rl_root);
 	}
 
 }

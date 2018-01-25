@@ -5,11 +5,44 @@
     android:orientation="horizontal"
      >
 
+    <!-- 将对应属性抽取到样式中去 -->
+    <!-- 跑马灯  marquee,必须要其获取焦点-->
     <TextView
-        android:layout_width="wrap_content"
+        android:text="功能列表"
+        style="@style/TitleStyle"/>
+    <!-- android:ellipsize="start" 添加省略点的所在位置 -->
+    <!-- 自定义控件达到滚动的效果（其实就是重写原有的TextView，让其一直能够获取焦点即可） -->
+    <!--  <TextView 
+        android:text="秋天秋天悄悄过去"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="HomeActivity"
         android:textColor="#000"
-         />
+        android:singleLine="true"
+        android:padding="5dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:focusableInTouchMode="true"/>-->
+        
+        <com.longbo.mobilesafe.view.FocusTextView>
+            android:text="秋天秋天悄悄过去"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:textColor="#000"
+	        android:singleLine="true"
+	        android:padding="5dp"
+	        android:ellipsize="marquee"
+	        android:marqueeRepeatLimit="marquee_forever" 
+        </com.longbo.mobilesafe.view.FocusTextView>
+        
+        <!-- numColumns指定列数 -->
+        <!--android:verticalSpacing="10dp" 指定内部条目竖直方向间距为10dp  -->
+        <GridView
+            android:id="@+id/gv_home"
+            android:numColumns="3"
+            android:verticalSpacing="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" /> 
+
     
 </LinearLayout>
