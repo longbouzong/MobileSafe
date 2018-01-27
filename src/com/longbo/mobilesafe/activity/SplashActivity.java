@@ -14,6 +14,8 @@ import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.longbo.mobilesafe.utils.ConstantValue;
+import com.longbo.mobilesafe.utils.SpUtils;
 import com.longbo.mobilesafe.utils.StreamUtil;
 import com.longbo.mobilesafe.utils.ToastUtil;
 
@@ -278,8 +280,16 @@ public class SplashActivity extends Activity {
 		 * 
 		 * apk新版本下载地址
 		 * */
+		if(SpUtils.getBoolean(this, ConstantValue.OPEN_UPDATE, false)){
+			checkVersion();
+		}else{
+			//直接进入主界面
+			//消息机制
+//			mHandler.sendMessageDelayed(ENTER_HOME, 4000);
+			//在发送消息4s后去处理当前的ENTER_HOME,
+			mHandler.sendEmptyMessageAtTime(ENTER_HOME, 4000);
+		}
 		
-		checkVersion();
 	}
 
 	/**

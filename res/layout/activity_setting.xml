@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,15 +11,24 @@
 	    android:text="设置中心"
 	    />
 
-	<com.longbo.mobilesafe.view.SettingItemView>
+		<com.longbo.mobilesafe.view.SettingItemView
+		    xmlns:mobilesafe="http://schemas.android.com/apk/res/com.longbo.mobilesafe"
+		    android:id="@+id/siv_update"
 	        android:layout_width="match_parent"
-    		android:layout_height="wrap_content"
-	</com.longbo.mobilesafe.view.SettingItemView>
-	
-		<com.longbo.mobilesafe.view.SettingItemView>
+    		android:layout_height="wrap_content">
+    		mobilesafe:destitle="自动更新设置"
+    		mobilesafe:desoff="自动更新关闭"
+    		mobilesafe:deson="自动更新开启"
+	    </com.longbo.mobilesafe.view.SettingItemView>
+	    
+		<com.longbo.mobilesafe.view.SettingItemView
+		    xmlns:mobilesafe="http://schemas.android.com/apk/res/com.longbo.mobilesafe"
 	        android:layout_width="match_parent"
-    		android:layout_height="wrap_content"
-	</com.longbo.mobilesafe.view.SettingItemView>
+    		android:layout_height="wrap_content">
+    		mobilesafe:destitle="电话归属地的显示设置"
+    		mobilesafe:desoff="归属显示已关闭"
+    		mobilesafe:deson="归属显示已开启"
+	    </com.longbo.mobilesafe.view.SettingItemView>
 
 
 </LinearLayout>
